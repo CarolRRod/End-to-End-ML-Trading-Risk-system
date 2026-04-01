@@ -24,7 +24,7 @@ class MarketDataLoader:
             df = self.validate_data(df)
             data[ticker] = df
 
-        return df
+        return data
     
     def validate_data(self, df: pd.DataFrame):
         df1 = df.copy()

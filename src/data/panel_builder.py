@@ -8,7 +8,7 @@ class PanelBuilder:
     def build_panel(self, data_dict):
         frames = []
 
-        for ticker, df in data_dict:
+        for ticker, df in data_dict.items():
             temp = df.copy()
             temp["Ticker"] = ticker
             temp["Date"] = temp.index
