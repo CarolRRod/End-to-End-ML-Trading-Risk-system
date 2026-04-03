@@ -1,4 +1,4 @@
-import pandas as pd 
+import pandas as pd
 
 
 class PanelBuilder:
@@ -20,4 +20,3 @@ class PanelBuilder:
         panel = panel.sort_values(["Date", "Ticker"])
 
         return panel
-        
