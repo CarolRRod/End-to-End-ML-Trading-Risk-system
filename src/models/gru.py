@@ -131,7 +131,7 @@ class MultiAssetSeq2SeqGRU(nn.Module):
         """
 
         batch_size = x.size(0)
-        _, hidden = self.encoder_gru(x)     # hideden: (batch_size, num_layers, hidden_size)
+        _, hidden = self.encoder_gru(x)     # hidden: (batch_size, num_layers, hidden_size)
 
         decoder_input = torch.zeros(batch_size, 1, self.num_tickers).to(x.device)
         outputs = []
