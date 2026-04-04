@@ -1,50 +1,74 @@
 import torch.nn as nn
-from src.models.base_model import BaseModel
 
+class LSTM(nn.Module):
+    def __init__(self,
+                 input_size,
+                 hidden_size=64,
+                 proj_size=0,
+                 num_layers=1,
+                 num_tickers=1,
+                 bidirectional=False
+                ):
+        super().__init__()
 
-class MultiAssetLSTM(nn.Module):
-    def __init__(self, input_size, hidden_size=50, num_layers=2, num_tickers=1):
-        super(MultiAssetLSTM, self).__init__()
-        
         self.lstm = nn.LSTM(
-            input_size=input_size,
-            hidden_size= hidden_size,
-            num_layers=num_layers,
-            batch_first=True
-        )
+                input_size=input_size,
+                hidden_size=hidden_size,
+                proj_size=proj_size,
+                num_layers=num_layers,
+                bidirectional=bidirectional,
+                batch_first=True
+            )
+        
+        lstm_out_size = proj_size if proj_size > 0 else hidden_size
+        direction_multiplier = 2 if bidirectional else 1
 
-        self.fc = nn.Linear(hidden_size, num_tickers)
+        self.fc = nn.Linear(lstm_out_size * direction_multiplier, num_tickers)
+
 
     def forward(self, x):
         """
          x: (batch_size, seq_len, input_size)
         """
 
-        out, _ = self.lstm(x)   # (batch_size, seq_len, hidden_size)
-        out = out[:, -1, :]     # (batch_size, 1, hidden_size)
+        out, _ = self.lstm(x)   # (batch_size, seq_len, lstm_out_size*direction_multiplier)
+        out = out[:, -1, :]     # (batch_size, 1, lstm_out_size*direction_multiplier)
         out = self.fc(out)      # (batch_size, num_tickers)
         return out
+
     
-
-class BidirectionalLSTM(nn.Module):
-    def __init__(self, input_size, hidden_size=50, num_layers=2, num_tickers=1):
-
-        self.lstm = nn.LSTM(
-            input_size=input_size,
+        
+class MultiAssetLSTM(LSTM):
+    def __init__(self, input_size, hidden_size=64, num_layers=2, num_tickers=1):
+        super().__init__(
+            input_size=input_size, 
             hidden_size=hidden_size,
             num_layers=num_layers,
-            bidirectional=True,
-            batch_first=True
+            num_tickers=num_tickers
         )
 
-        self.fc = nn.Linear(2*hidden_size, num_tickers)
+    
 
-    def forward(self, x):
-        """
-         x: (batch_size, seq_len, input_size)
-        """
+class MultiAssetBiLSTM(LSTM):
+    def __init__(self, input_size, hidden_size=64, num_layers=2, num_tickers=1):
+        super().__init__(
+            input_size=input_size, 
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            num_tickers=num_tickers,
+            bidirectional=True
+        )
 
-        out, _ = self.lstm(x)   # (batch_size, seq_len, 2*hidden_size)
-        out = out[:, -1, :]     # (batch_size, 1, 2*hidden_size)
-        out = self.fc(out)
-        return out
+
+
+class MultiAssetProjectedLSTM(nn.Module):
+    def __init__(self, input_size, hidden_size=64, num_layers=2, proj_size=32, num_tickers=1):
+
+       super().__init__(
+            input_size=input_size, 
+            hidden_size=hidden_size,
+            proj_size=proj_size,
+            num_layers=num_layers,
+            num_tickers=num_tickers,
+        )
+
