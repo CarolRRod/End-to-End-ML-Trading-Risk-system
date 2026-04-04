@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-class LSTM(nn.Module):
+class MultiAssetLSTM(nn.Module):
     def __init__(self,
                  input_size,
                  hidden_size=64,
@@ -25,7 +25,6 @@ class LSTM(nn.Module):
 
         self.fc = nn.Linear(lstm_out_size * direction_multiplier, num_tickers)
 
-
     def forward(self, x):
         """
          x: (batch_size, seq_len, input_size)
@@ -36,20 +35,8 @@ class LSTM(nn.Module):
         out = self.fc(out)      # (batch_size, num_tickers)
         return out
 
-    
-        
-class MultiAssetLSTM(LSTM):
-    def __init__(self, input_size, hidden_size=64, num_layers=2, num_tickers=1):
-        super().__init__(
-            input_size=input_size, 
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            num_tickers=num_tickers
-        )
 
-    
-
-class MultiAssetBiLSTM(LSTM):
+class MultiAssetBiLSTM(MultiAssetLSTM):
     def __init__(self, input_size, hidden_size=64, num_layers=2, num_tickers=1):
         super().__init__(
             input_size=input_size, 
@@ -60,10 +47,8 @@ class MultiAssetBiLSTM(LSTM):
         )
 
 
-
-class MultiAssetProjectedLSTM(nn.Module):
+class MultiAssetProjectedLSTM(MultiAssetLSTM):
     def __init__(self, input_size, hidden_size=64, num_layers=2, proj_size=32, num_tickers=1):
-
        super().__init__(
             input_size=input_size, 
             hidden_size=hidden_size,
@@ -71,4 +56,3 @@ class MultiAssetProjectedLSTM(nn.Module):
             num_layers=num_layers,
             num_tickers=num_tickers,
         )
-
