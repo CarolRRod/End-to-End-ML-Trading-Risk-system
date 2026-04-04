@@ -17,10 +17,34 @@ class MultiAssetLSTM(nn.Module):
 
     def forward(self, x):
         """
-         x: (batch_size, seq_len, num_features)
+         x: (batch_size, seq_len, input_size)
         """
 
         out, _ = self.lstm(x)   # (batch_size, seq_len, hidden_size)
         out = out[:, -1, :]     # (batch_size, 1, hidden_size)
         out = self.fc(out)      # (batch_size, num_tickers)
+        return out
+    
+
+class BidirectionalLSTM(nn.Module):
+    def __init__(self, input_size, hidden_size=50, num_layers=2, num_tickers=1):
+
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            bidirectional=True,
+            batch_first=True
+        )
+
+        self.fc = nn.Linear(2*hidden_size, num_tickers)
+
+    def forward(self, x):
+        """
+         x: (batch_size, seq_len, input_size)
+        """
+
+        out, _ = self.lstm(x)   # (batch_size, seq_len, 2*hidden_size)
+        out = out[:, -1, :]     # (batch_size, 1, 2*hidden_size)
+        out = self.fc(out)
         return out
