@@ -28,3 +28,4 @@ class GRN(nn.Module):
         out = gate * out + (1-gate) * residual
 
         return self.layer_norm(out)
+
