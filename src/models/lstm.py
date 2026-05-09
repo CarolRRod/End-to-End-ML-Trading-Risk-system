@@ -6,7 +6,7 @@ class LSTMModel(nn.Module):
                  input_size,
                  hidden_size=64,
                  num_layers=2,
-                 output_size=1,
+                 output_dim=1,
                  bidirectional=False,
                 ):
         super().__init__()
@@ -21,7 +21,7 @@ class LSTMModel(nn.Module):
         
         direction_multiplier = 2 if bidirectional else 1
         self.norm = nn.LayerNorm(hidden_size * direction_multiplier)
-        self.fc = nn.Linear(hidden_size * direction_multiplier, output_size)
+        self.fc = nn.Linear(hidden_size * direction_multiplier, output_dim)
 
 
     def forward(self, x):
@@ -32,7 +32,7 @@ class LSTMModel(nn.Module):
         out, _ = self.lstm(x)   # (batch_size, seq_len, lstm_out_size*direction_multiplier)
         out = out[:, -1]        # (batch_size, lstm_out_size*direction_multiplier)
         out = self.norm(out)
-        out = self.fc(out)      # (batch_size, output_size)
+        out = self.fc(out)      # (batch_size, output_dim)
         return out
 
 
@@ -42,11 +42,11 @@ class Seq2SeqLSTM(nn.Module):
                  hidden_size=64,
                  num_layers=2,
                  horizon=10,
-                 output_size=1):
+                 output_dim=1):
         super().__init__()
 
         self.horizon = horizon
-        self.output_size = output_size
+        self.output_dim = output_dim
 
         self.encoder_lstm = nn.LSTM(
             input_size=input_size,
@@ -56,13 +56,13 @@ class Seq2SeqLSTM(nn.Module):
         )
 
         self.decoder_lstm = nn.LSTM(
-            input_size=output_size,
+            input_size=output_dim,
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True
         )
 
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.fc = nn.Linear(hidden_size, output_dim)
 
     
     def forward(self, x):
@@ -77,12 +77,12 @@ class Seq2SeqLSTM(nn.Module):
 
         for _ in range(self.horizon):
             out, (hidden, cell) = self.decoder_lstm(decoder_input, (hidden, cell))
-            pred = self.fc(out)     # (batch_size, 1, output_size)
+            pred = self.fc(out)     # (batch_size, 1, output_dim)
             
             outputs.append(decoder_input)
             decoder_input = pred
 
-        outputs = torch.cat(outputs, dim=1) # (batch_size, horizon, output_size)
+        outputs = torch.cat(outputs, dim=1) # (batch_size, horizon, output_dim)
 
         return outputs
 
@@ -93,11 +93,11 @@ class Seq2SeqBiLSTM(nn.Module):
                  hidden_size=64,
                  num_layers=2,
                  horizon=10,
-                 output_size=1):
+                 output_dim=1):
         super().__init__()
 
         self.horizon = horizon
-        self.output_size = output_size
+        self.output_dim = output_dim
         self.num_layers = num_layers
         self.hidden_size = hidden_size
 
@@ -110,14 +110,14 @@ class Seq2SeqBiLSTM(nn.Module):
         )
 
         self.decoder_lstm = nn.LSTM(
-            input_size=output_size,
+            input_size=output_dim,
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True,
             bidirectional=False
         )
 
-        self.fc = nn.Linear(hidden_size*2, output_size)
+        self.fc = nn.Linear(hidden_size*2, output_dim)
 
     
     def _merge_states(self, x):
