@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class AttentionPooling(nn.Module):
     def __init__(self, hidden_size):
-        super.__init__()
+        super().__init__()
         self.attn = nn.Linear(hidden_size, 1)
 
     def forward(self, x):
@@ -48,7 +48,7 @@ class MultiHeadAttentionLSTM(nn.Module):
        lstm_out, _ = self.lstm(x)   # (batch_size, seq_len, hidden_size)
 
        attn_output, _ = self.attention(lstm_out, lstm_out, lstm_out)   # attn_out (batch_size, seq_len, hidden_size)
-       out = self.norm(lstm_out, attn_output)
+       out = self.norm(lstm_out + attn_output)
        context = self.pool(out)    # (batch_size, hidden_size)
        out = self.fc(context)      # (batch_size, output_dim)
        return out
